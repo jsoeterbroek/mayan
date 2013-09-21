@@ -23,14 +23,13 @@ from acls.utils import apply_default_acls
 
 from .managers import SourceTransformationManager
 from .literals import (SOURCE_CHOICES, SOURCE_CHOICES_PLURAL,
-    SOURCE_INTERACTIVE_UNCOMPRESS_CHOICES, SOURCE_CHOICE_WEB_FORM,
+    SOURCE_INTERACTIVE_UNCOMPRESS_CHOICES, SOURCE_CHOICE_WEB_FORM, SOURCE_CHOICE_SCANWEB_FORM,
     SOURCE_CHOICE_STAGING, SOURCE_ICON_DISK, SOURCE_ICON_DRIVE,
     SOURCE_ICON_CHOICES, SOURCE_CHOICE_WATCH, SOURCE_UNCOMPRESS_CHOICES,
     SOURCE_UNCOMPRESS_CHOICE_Y)
 from .compressed_file import CompressedFile, NotACompressedFile
 
 logger = logging.getLogger(__name__)
-
 
 class BaseModel(models.Model):
     title = models.CharField(max_length=64, verbose_name=_(u'title'))
@@ -202,6 +201,23 @@ class WebForm(InteractiveBaseModel):
     class Meta(InteractiveBaseModel.Meta):
         verbose_name = _(u'web form')
         verbose_name_plural = _(u'web forms')
+
+#******************************SCAN MODEL**************************************
+class ScanWebForm(InteractiveBaseModel):
+    is_interactive = True
+    source_type = SOURCE_CHOICE_SCANWEB_FORM
+    default_icon = SOURCE_ICON_DISK
+
+#***********************added
+    uncompress = models.CharField(max_length=1, choices=SOURCE_INTERACTIVE_UNCOMPRESS_CHOICES, verbose_name=_(u'uncompress'), help_text=_(u'Whether to expand or not compressed archives.'))
+    #Default path
+
+    class Meta(InteractiveBaseModel.Meta):
+        verbose_name = _(u'scanweb form')
+        verbose_name_plural = _(u'scanweb forms')
+
+
+#*****************************************************************************
 
 
 class WatchFolder(BaseModel):

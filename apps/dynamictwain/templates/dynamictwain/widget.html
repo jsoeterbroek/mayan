@@ -1,0 +1,38 @@
+<input type="button" value="Scan" onclick = "Simple_AcquireImage();" />
+
+
+<script type="text/javascript" language="javascript">
+
+    /* Settings provided by Django */
+    var RESOLUTION = {{default_resolution}};
+    var SERVER = "{{server}}";
+    var UPLOAD_PATH = "{{upload_path}}";
+    var MULTIPLE = {{multiple}};
+
+    function Simple_AcquireImage() {
+
+        DWObject.RemoveAllImages();
+
+
+        /* Some advanced scan settings, see Wikipedia for more explanations */
+        DWObject.IfFeederEnabled = "ON";
+        DWObject.IfDuplexEnabled = "OFF";
+
+        DWObject.SelectSource();
+        DWObject.CloseSource();
+        DWObject.OpenSource();
+        DWObject.IfShowUI = false;
+        DWObject.AcquireImage();
+
+
+        DWObject.SelectedImagesCount = 1;
+        DWObject.SetSelectedImageIndex(0, 0)
+        DWObject.GetSelectedImagesSize(1)
+
+        $("#file_base64").val(DWObject.SaveSelectedImagesToBase64Binary()); 
+
+    }
+
+
+</script>
+

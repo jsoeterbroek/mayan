@@ -20,7 +20,7 @@ sys.path.append(os.path.join(PROJECT_ROOT, '3rd_party_apps'))
 PROJECT_TITLE = 'Mayan EDMS'
 PROJECT_NAME = 'mayan'
 
-DEBUG = False
+DEBUG = True
 DEVELOPMENT = False
 TEMPLATE_DEBUG = False
 
@@ -30,7 +30,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.path.join(PROJECT_ROOT, '%s.sqlite' % PROJECT_NAME),     # Or path to database file if using sqlite3.
+        'NAME':'/usr/share/dev12/scan/mayan/mayan.sql', #os.path.join(PROJECT_ROOT, '%s.sqlite' % PROJECT_NAME),     # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -118,8 +118,23 @@ MIDDLEWARE_CLASSES = (
     'common.middleware.login_required_middleware.LoginRequiredMiddleware',
     'permissions.middleware.permission_denied_middleware.PermissionDeniedMiddleware',
     'pagination.middleware.PaginationMiddleware',
+    'dynamictwain.middleware.DisableCSRF',
+    'sources.middleware.DisableCSRF',
+
 )
 
+#----------------------------------------
+# Python dotted path to the WSGI application used by Django's runserver.
+WSGI_APPLICATION = 'mayan.wsgi.application'
+
+#-------------------------------------------------------
+STATICFILES_DIRS = (
+    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+)
+
+#-------------------------------------------------------
 ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
@@ -128,6 +143,23 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
     #os.path.join(PROJECT_ROOT, 'templates')
 )
+
+
+#*******************************************************
+
+# Dynamictwain-specific configuration
+
+DYNAMIC_TWAIN_MEDIA_ROOT = "/usr/share/dev1/scan/mayan/apps/dynamictwain/media/"
+DYNAMIC_TWAIN_DEFAULT_RESOLUTION = 150
+DYNAMIC_TWAIN_SERVER = "localhost"
+
+DYNAMIC_TWAIN_UPLOAD_PATH =  "/twain/upload/"# We can't reverse() because the
+                                             # urls.py is not yet loaded.
+#******************************************************
+
+
+MEDIA_ROOT = '/usr/share/dev1/scan/mayan/media/'
+MEDIA_URL = '/media/'
 
 INSTALLED_APPS = (
 #Django
@@ -154,6 +186,7 @@ INSTALLED_APPS = (
     'project_setup',
     'project_tools',
     'smart_settings',
+
     'navigation',
     'lock_manager',
     'web_theme',
@@ -190,6 +223,7 @@ INSTALLED_APPS = (
     'checkouts',
     'bootstrap',
     'registration',
+    'dynamictwain',
 # Has to be last so the other apps can register it's signals
     'signaler',
 )

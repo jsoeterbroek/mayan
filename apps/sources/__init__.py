@@ -10,7 +10,7 @@ from documents.permissions import (PERMISSION_DOCUMENT_NEW_VERSION,
     PERMISSION_DOCUMENT_CREATE)
 
 from .staging import StagingFile
-from .models import (WebForm, StagingFolder, SourceTransformation,
+from .models import (WebForm, ScanWebForm, StagingFolder, SourceTransformation,
     WatchFolder)
 from .widgets import staging_file_thumbnail
 from .permissions import (PERMISSION_SOURCES_SETUP_VIEW,
@@ -20,8 +20,13 @@ from .permissions import (PERMISSION_SOURCES_SETUP_VIEW,
 staging_file_preview = {'text': _(u'preview'), 'class': 'fancybox-noscaling', 'view': 'staging_file_preview', 'args': ['source.source_type', 'source.pk', 'object.id'], 'famfam': 'zoom', 'permissions': [PERMISSION_DOCUMENT_NEW_VERSION, PERMISSION_DOCUMENT_CREATE]}
 staging_file_delete = {'text': _(u'delete'), 'view': 'staging_file_delete', 'args': ['source.source_type', 'source.pk', 'object.id'], 'famfam': 'delete', 'keep_query': True, 'permissions': [PERMISSION_DOCUMENT_NEW_VERSION, PERMISSION_DOCUMENT_CREATE]}
 
-setup_sources = {'text': _(u'sources'), 'view': 'setup_web_form_list', 'famfam': 'application_form', 'icon': 'application_form.png', 'children_classes': [WebForm], 'permissions': [PERMISSION_SOURCES_SETUP_VIEW], 'children_view_regex': [r'setup_web_form', r'setup_staging_folder', r'setup_source_']}
+setup_sources = {'text': _(u'sources'), 'view': 'setup_web_form_list', 'famfam': 'application_form', 'icon': 'application_form.png', 'children_classes': [WebForm], 'permissions': [PERMISSION_SOURCES_SETUP_VIEW], 'children_view_regex': [r'setup_web_form',r'setup_Scanweb_form', r'setup_staging_folder', r'setup_source_']}
 setup_web_form_list = {'text': _(u'web forms'), 'view': 'setup_web_form_list', 'famfam': 'application_form', 'icon': 'application_form.png', 'children_classes': [WebForm], 'permissions': [PERMISSION_SOURCES_SETUP_VIEW]}
+
+#**********************************************************************************
+setup_scanweb_form_list = {'text': _(u'scanweb forms'), 'view': 'setup_scanweb_form_list', 'famfam': 'application_form', 'icon': 'application_form.png', 'children_classes': [ScanWebForm], 'permissions': [PERMISSION_SOURCES_SETUP_VIEW]}
+
+#**********************************************************************************
 setup_staging_folder_list = {'text': _(u'staging folders'), 'view': 'setup_staging_folder_list', 'famfam': 'folder_camera', 'children_classes': [StagingFolder], 'permissions': [PERMISSION_SOURCES_SETUP_VIEW]}
 setup_watch_folder_list = {'text': _(u'watch folders'), 'view': 'setup_watch_folder_list', 'famfam': 'folder_magnify', 'children_classes': [WatchFolder], 'permissions': [PERMISSION_SOURCES_SETUP_VIEW]}
 
@@ -43,19 +48,26 @@ register_links(StagingFile, [staging_file_delete])
 register_links(SourceTransformation, [setup_source_transformation_edit, setup_source_transformation_delete])
 
 #register_links(['setup_web_form_list', 'setup_staging_folder_list', 'setup_watch_folder_list', 'setup_source_create'], [setup_web_form_list, setup_staging_folder_list, setup_watch_folder_list], menu_name='form_header')
-register_links(['setup_web_form_list', 'setup_staging_folder_list', 'setup_watch_folder_list', 'setup_source_create'], [setup_web_form_list, setup_staging_folder_list], menu_name='form_header')
+register_links(['setup_web_form_list','setup_scanweb_form_list', 'setup_staging_folder_list', 'setup_watch_folder_list', 'setup_source_create'], [setup_web_form_list, setup_scanweb_form_list, setup_staging_folder_list], menu_name='form_header')
 
 #register_links(WebForm, [setup_web_form_list, setup_staging_folder_list, setup_watch_folder_list], menu_name='form_header')
-register_links(WebForm, [setup_web_form_list, setup_staging_folder_list], menu_name='form_header')
+register_links(WebForm, [setup_web_form_list,setup_scanweb_form_list, setup_staging_folder_list], menu_name='form_header')
 register_links(WebForm, [setup_source_transformation_list, setup_source_edit, setup_source_delete])
 
-register_links(['setup_web_form_list', 'setup_staging_folder_list', 'setup_watch_folder_list', 'setup_source_edit', 'setup_source_delete', 'setup_source_create'], [setup_sources, setup_source_create], menu_name='sidebar')
+register_links(['setup_web_form_list','setup_scanweb_form_list', 'setup_staging_folder_list', 'setup_watch_folder_list', 'setup_source_edit', 'setup_source_delete', 'setup_source_create'], [setup_sources, setup_source_create], menu_name='sidebar')
+#******************************************************************************************************
+register_links(ScanWebForm, [setup_web_form_list,setup_scanweb_form_list, setup_staging_folder_list], menu_name='form_header')
+register_links(ScanWebForm, [setup_source_transformation_list, setup_source_edit, setup_source_delete])
+
+
+#******************************************************************************************************
+
 
 #register_links(StagingFolder, [setup_web_form_list, setup_staging_folder_list, setup_watch_folder_list], menu_name='form_header')
-register_links(StagingFolder, [setup_web_form_list, setup_staging_folder_list], menu_name='form_header')
+register_links(StagingFolder, [setup_web_form_list, setup_scanweb_form_list, setup_staging_folder_list], menu_name='form_header')
 register_links(StagingFolder, [setup_source_transformation_list, setup_source_edit, setup_source_delete])
 
-register_links(WatchFolder, [setup_web_form_list, setup_staging_folder_list, setup_watch_folder_list], menu_name='form_header')
+register_links(WatchFolder, [setup_web_form_list, setup_scanweb_form_list, setup_staging_folder_list, setup_watch_folder_list], menu_name='form_header')
 register_links(WatchFolder, [setup_source_transformation_list, setup_source_edit, setup_source_delete])
 
 # Document version
@@ -63,7 +75,7 @@ register_links(['document_version_list', 'upload_version', 'document_version_rev
 
 register_links(['setup_source_transformation_create', 'setup_source_transformation_edit', 'setup_source_transformation_delete', 'setup_source_transformation_list'], [setup_source_transformation_create], menu_name='sidebar')
 
-source_views = ['setup_web_form_list', 'setup_staging_folder_list', 'setup_watch_folder_list', 'setup_source_edit', 'setup_source_delete', 'setup_source_create', 'setup_source_transformation_list', 'setup_source_transformation_edit', 'setup_source_transformation_delete', 'setup_source_transformation_create']
+source_views = ['setup_web_form_list', 'setup_scanweb_form_list', 'setup_staging_folder_list', 'setup_watch_folder_list', 'setup_source_edit', 'setup_source_delete', 'setup_source_create', 'setup_source_transformation_list', 'setup_source_transformation_edit', 'setup_source_transformation_delete', 'setup_source_transformation_create']
 
 register_model_list_columns(StagingFile, [
         {'name':_(u'thumbnail'), 'attribute':

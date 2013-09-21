@@ -22,21 +22,23 @@ from common.utils import encapsulate
 import sendfile
 from acls.models import AccessEntry
 
-from sources.models import (WebForm, StagingFolder, SourceTransformation,
-    WatchFolder)
-from sources.literals import (SOURCE_CHOICE_WEB_FORM, SOURCE_CHOICE_STAGING,
+from sources.models import (WebForm,ScanWebForm, StagingFolder, SourceTransformation,
+    WatchFolder) #added ScanWebForm
+# added SOURCE_CHOICE_SCANWEB_FORM
+from sources.literals import (SOURCE_CHOICE_WEB_FORM, SOURCE_CHOICE_SCANWEB_FORM, SOURCE_CHOICE_STAGING,
     SOURCE_CHOICE_WATCH)
 from sources.literals import (SOURCE_UNCOMPRESS_CHOICE_Y,
     SOURCE_UNCOMPRESS_CHOICE_ASK)
 from sources.staging import create_staging_file_class
-from sources.forms import (StagingDocumentForm, WebFormForm,
+# added ScanWebFormForm
+from sources.forms import (StagingDocumentForm, ScanWebFormForm, WebFormForm,
     WatchFolderSetupForm)
-from sources.forms import WebFormSetupForm, StagingFolderSetupForm
+# added ScanWebFormSetupForm
+from sources.forms import WebFormSetupForm, ScanWebFormSetupForm, StagingFolderSetupForm
 from sources.forms import SourceTransformationForm, SourceTransformationForm_create
 from .permissions import (PERMISSION_SOURCES_SETUP_VIEW,
     PERMISSION_SOURCES_SETUP_EDIT, PERMISSION_SOURCES_SETUP_DELETE,
     PERMISSION_SOURCES_SETUP_CREATE)
-
 
 def return_function(obj):
     return lambda context: context['source'].source_type == obj.source_type and context['source'].pk == obj.pk
@@ -66,6 +68,13 @@ def get_active_tab_links(document=None):
     web_forms = WebForm.objects.filter(enabled=True)
     for web_form in web_forms:
         tab_links.append(get_tab_link_for_source(web_form, document))
+#***************************************************************************
+    scanweb_forms = ScanWebForm.objects.filter(enabled=True)
+    for scanweb_form in scanweb_forms:
+        tab_links.append(get_tab_link_for_source(scanweb_form, document))
+#***************************************************************************
+
+
 
     staging_folders = StagingFolder.objects.filter(enabled=True)
     for staging_folder in staging_folders:
@@ -74,6 +83,7 @@ def get_active_tab_links(document=None):
     return {
         'tab_links': tab_links,
         SOURCE_CHOICE_WEB_FORM: web_forms,
+        SOURCE_CHOICE_SCANWEB_FORM: scanweb_forms, # added , no tab otherwise
         SOURCE_CHOICE_STAGING: staging_folders
     }
 
@@ -96,7 +106,7 @@ def upload_interactive(request, source_type=None, source_id=None, document_pk=No
 
     context = {}
 
-    if results[SOURCE_CHOICE_WEB_FORM].count() == 0 and results[SOURCE_CHOICE_STAGING].count() == 0:
+    if results[SOURCE_CHOICE_WEB_FORM].count() == 0 and results[SOURCE_CHOICE_STAGING].count() == 0 and results[SOURCE_CHOICE_SCANWEB_FORM].count() == 0:
         source_setup_link = mark_safe('<a href="%s">%s</a>' % (reverse('setup_web_form_list'), ugettext(u'here')))
         subtemplates_list.append(
             {
@@ -125,13 +135,18 @@ def upload_interactive(request, source_type=None, source_id=None, document_pk=No
         elif results[SOURCE_CHOICE_STAGING].count():
             source_type = results[SOURCE_CHOICE_STAGING][0].source_type
             source_id = results[SOURCE_CHOICE_STAGING][0].pk
+#************************************************************************
+        elif results[SOURCE_CHOICE_SCANWEB_FORM].count():
+            source_type = results[SOURCE_CHOICE_SCANWEB_FORM][0].source_type
+            source_id = results[SOURCE_CHOICE_SCANWEB_FORM][0].pk
+#************************************************************************
 
     if source_type and source_id:
         if source_type == SOURCE_CHOICE_WEB_FORM:
             web_form = get_object_or_404(WebForm, pk=source_id)
             context['source'] = web_form
             if request.method == 'POST':
-                form = WebFormForm(request.POST, request.FILES,
+                form = WebFormForm(post, new_request.FILES,
                     document_type=document_type,
                     show_expand=(web_form.uncompress == SOURCE_UNCOMPRESS_CHOICE_ASK) and not document,
                     source=web_form,
@@ -151,7 +166,7 @@ def upload_interactive(request, source_type=None, source_id=None, document_pk=No
                                     expand = False
 
                         new_filename = get_form_filename(form)
-
+                  
                         result = web_form.upload_file(request.FILES['file'],
                             new_filename, use_file_name=form.cleaned_data.get('use_file_name', False),
                             document_type=document_type,
@@ -200,6 +215,86 @@ def upload_interactive(request, source_type=None, source_id=None, document_pk=No
                     'title': title,
                 },
             })
+
+#*************************************** Scanner ********************************************************
+        elif source_type == SOURCE_CHOICE_SCANWEB_FORM:
+            scanweb_form = get_object_or_404(ScanWebForm, pk=source_id)
+            context['source'] = scanweb_form
+
+            if request.method == 'POST':
+            #****************************your modifications*********************************************
+                from django.core.files.uploadedfile import InMemoryUploadedFile
+                import tempfile
+
+                if 'file_base64' in request.POST:
+                    if 'file' in request.POST:
+                        request.POST.pop('file')
+
+                    rawfile = request.POST['file_base64'].decode('base64')
+                    tmpfile = tempfile.NamedTemporaryFile()
+                    tmpfile.write(rawfile)
+                    
+                    # This is for django 1.5:
+                    inmemmory = InMemoryUploadedFile(tmpfile, 'file', request.POST.get('new_filename', ''), 'image/jpeg', len(rawfile), None)
+                    # when mayan gets upgraded to django 1.5 the
+                    # InMemoryUploadedFile requires an extra argument
+                    # which is also None
+                    request.FILES['file'] = inmemmory
+
+                form = ScanWebFormForm(request.POST, request.FILES,
+                    document_type=document_type,
+                    source=scanweb_form,
+                    instance=document
+                )
+
+                if form.is_valid():
+                    try:
+                        expand = False
+
+                        new_filename = get_form_filename(form)
+                        
+
+                        result = scanweb_form.upload_file(request.FILES['file'],
+                            new_filename, use_file_name=form.cleaned_data.get('use_file_name', False),
+                            document_type=document_type,expand=expand,
+                            metadata_dict_list=decode_metadata_from_url(request.GET),
+                            user=request.user,
+                            document=document,
+                            new_version_data=form.cleaned_data.get('new_version_data')
+                        )
+                        if document:
+                            messages.success(request, _(u'New document version uploaded successfully.'))
+                            return HttpResponseRedirect(reverse('document_view_simple', args=[document.pk]))
+                        else:
+                            messages.success(request, _(u'File uploaded successfully.'))
+                            return HttpResponseRedirect(request.get_full_path())
+                    except NewDocumentVersionNotAllowed:
+                        messages.error(request, _(u'New version uploads are not allowed for this document.'))
+                    except Exception, e:
+                        if settings.DEBUG:
+                            raise
+                        messages.error(request, _(u'Unhandled exception: %s') % e)
+            else:
+                form = ScanWebFormForm(
+                    document_type=document_type,
+                    source=scanweb_form,
+                    instance=document
+                )
+            if document:
+                title = _(u'upload a new version from source: %s') % scanweb_form.title
+            else:
+                title = _(u'upload a local document from source: %s') % scanweb_form.title
+
+            subtemplates_list.append({
+                'name': 'generic_scanform_subtemplate.html',#generic_form_subtemplate.html',
+                'context': {
+                    'form': form,
+                    'title': title,
+                },
+            })
+#*****************************************************************************************************************************
+
+         
         elif source_type == SOURCE_CHOICE_STAGING:
             staging_folder = get_object_or_404(StagingFolder, pk=source_id)
             context['source'] = staging_folder
@@ -380,7 +475,7 @@ def staging_file_thumbnail(request, source_id, staging_file_id):
     Permission.objects.check_permissions(request.user, [PERMISSION_DOCUMENT_CREATE, PERMISSION_DOCUMENT_NEW_VERSION])
     staging_folder = get_object_or_404(StagingFolder, pk=source_id)
     StagingFile = create_staging_file_class(request, staging_folder.folder_path, source=staging_folder)
-    transformations, errors = SourceTransformation.transformations.get_for_object_as_list(staging_folder)
+    transformations, errors = SourceTransformation.transformations.get_for_object_ageneric_scanform_instance.htmls_list(staging_folder)
 
     output_file = StagingFile.get(staging_file_id).get_image(
         size=THUMBNAIL_SIZE,
@@ -393,7 +488,6 @@ def staging_file_thumbnail(request, source_id, staging_file_id):
             })
 
     return sendfile.sendfile(request, output_file)
-
 
 def staging_file_delete(request, source_type, source_id, staging_file_id):
     Permission.objects.check_permissions(request.user, [PERMISSION_DOCUMENT_CREATE, PERMISSION_DOCUMENT_NEW_VERSION])
@@ -440,6 +534,11 @@ def setup_source_list(request, source_type):
     elif source_type == SOURCE_CHOICE_WATCH:
         cls = WatchFolder
 
+#***************************************************************************
+    elif source_type == SOURCE_CHOICE_SCANWEB_FORM:
+        cls = ScanWebForm
+#***************************************************************************
+
     context = {
         'object_list': cls.objects.all(),
         'title': cls.class_fullname_plural(),
@@ -464,6 +563,14 @@ def setup_source_edit(request, source_type, source_id):
     elif source_type == SOURCE_CHOICE_WATCH:
         cls = WatchFolder
         form_class = WatchFolderSetupForm
+
+#***********************************************************************************
+    elif source_type == SOURCE_CHOICE_SCANWEB_FORM:
+        cls = ScanWebForm
+        form_class = ScanWebFormSetupForm
+#***********************************************************************************
+
+
 
     source = get_object_or_404(cls, pk=source_id)
     next = request.POST.get('next', request.GET.get('next', request.META.get('HTTP_REFERER', '/')))
@@ -506,6 +613,14 @@ def setup_source_delete(request, source_type, source_id):
         cls = WatchFolder
         form_icon = u'folder_delete.png'
         redirect_view = 'setup_watch_folder_list'
+
+#******************************************************
+    elif source_type == SOURCE_CHOICE_SCANWEB_FORM:
+        cls = ScanWebForm
+        form_icon = u'application_form_delete.png'
+        redirect_view = 'setup_scanweb_form_list'
+#*****************************************************
+
 
     redirect_view = reverse('setup_source_list', args=[source_type])
     previous = request.POST.get('previous', request.GET.get('previous', request.META.get('HTTP_REFERER', redirect_view)))
@@ -550,6 +665,15 @@ def setup_source_create(request, source_type):
     elif source_type == SOURCE_CHOICE_WATCH:
         cls = WatchFolder
         form_class = WatchFolderSetupForm
+
+#*********************************************************
+    elif source_type == SOURCE_CHOICE_SCANWEB_FORM:
+        cls = ScanWebForm
+        form_class = ScanWebFormSetupForm
+
+#**********************************************
+
+
 
     if request.method == 'POST':
         form = form_class(data=request.POST)

@@ -1,12 +1,10 @@
 from __future__ import absolute_import
-
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ugettext
-
 from documents.forms import DocumentForm
 
-from .models import (WebForm, StagingFolder, SourceTransformation,
+from .models import (WebForm, ScanWebForm, StagingFolder, SourceTransformation,
     WatchFolder)
 from .widgets import FamFamRadioSelect
 from .utils import validate_whitelist_blacklist
@@ -43,7 +41,7 @@ class StagingDocumentForm(DocumentForm):
     staging_file_id = forms.ChoiceField(label=_(u'Staging file'))
 
     class Meta(DocumentForm.Meta):
-        exclude = ('description', 'file', 'document_type', 'tags')
+        exclude = ('description', 'file','document_type', 'tags')
 
 
 class WebFormForm(DocumentForm):
@@ -69,7 +67,19 @@ class WebFormForm(DocumentForm):
         validate_whitelist_blacklist(data.name, self.source.whitelist.split(','), self.source.blacklist.split(','))
 
         return data
+#*****************************************************************************
+class ScanWebFormForm(DocumentForm):
+    def __init__(self, *args, **kwargs):
+        show_expand = kwargs.pop('show_expand', False)
+        self.source = kwargs.pop('source')
+        super(ScanWebFormForm , self).__init__(*args, **kwargs)
 
+    def clean_file(self):
+        data = self.cleaned_data['file']
+        validate_whitelist_blacklist(data.name, self.source.whitelist.split(','), self.source.blacklist.split(','))
+
+        return data
+#*****************************scan*******************************************
 
 class WebFormSetupForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -81,6 +91,20 @@ class WebFormSetupForm(forms.ModelForm):
 
     class Meta:
         model = WebForm
+
+#******************************scan****************************************
+class ScanWebFormSetupForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ScanWebFormSetupForm, self).__init__(*args, **kwargs)
+        self.fields['icon'].widget = FamFamRadioSelect(
+            attrs=self.fields['icon'].widget.attrs,
+            choices=self.fields['icon'].widget.choices,
+        )
+
+    class Meta:
+        model = ScanWebForm
+
+#***************************************************************************
 
 
 class StagingFolderSetupForm(forms.ModelForm):
