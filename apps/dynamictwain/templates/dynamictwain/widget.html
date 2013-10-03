@@ -22,17 +22,14 @@
         DWObject.CloseSource();
         DWObject.OpenSource();
         DWObject.IfShowUI = false;
+
         DWObject.AcquireImage();
 
-
+        //DWObject.LoadImageEx("/Users/gabrielfalcao/Desktop/ahua01-full.jpg", 1);
         DWObject.SelectedImagesCount = 1;
         DWObject.SetSelectedImageIndex(0, 0)
         DWObject.GetSelectedImagesSize(1)
 
-        $("#file_base64").val(DWObject.SaveSelectedImagesToBase64Binary()); 
-
+        $("#file_base64").val(DWObject.SaveSelectedImagesToBase64Binary());
     }
-
-
 </script>
-

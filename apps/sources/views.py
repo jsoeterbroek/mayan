@@ -146,7 +146,7 @@ def upload_interactive(request, source_type=None, source_id=None, document_pk=No
             web_form = get_object_or_404(WebForm, pk=source_id)
             context['source'] = web_form
             if request.method == 'POST':
-                form = WebFormForm(post, new_request.FILES,
+                form = WebFormForm(request.POST, request.FILES,
                     document_type=document_type,
                     show_expand=(web_form.uncompress == SOURCE_UNCOMPRESS_CHOICE_ASK) and not document,
                     source=web_form,
@@ -166,7 +166,7 @@ def upload_interactive(request, source_type=None, source_id=None, document_pk=No
                                     expand = False
 
                         new_filename = get_form_filename(form)
-                  
+
                         result = web_form.upload_file(request.FILES['file'],
                             new_filename, use_file_name=form.cleaned_data.get('use_file_name', False),
                             document_type=document_type,
@@ -233,7 +233,7 @@ def upload_interactive(request, source_type=None, source_id=None, document_pk=No
                     rawfile = request.POST['file_base64'].decode('base64')
                     tmpfile = tempfile.NamedTemporaryFile()
                     tmpfile.write(rawfile)
-                    
+
                     # This is for django 1.5:
                     inmemmory = InMemoryUploadedFile(tmpfile, 'file', request.POST.get('new_filename', ''), 'image/jpeg', len(rawfile), None)
                     # when mayan gets upgraded to django 1.5 the
@@ -252,7 +252,7 @@ def upload_interactive(request, source_type=None, source_id=None, document_pk=No
                         expand = False
 
                         new_filename = get_form_filename(form)
-                        
+
 
                         result = scanweb_form.upload_file(request.FILES['file'],
                             new_filename, use_file_name=form.cleaned_data.get('use_file_name', False),
@@ -294,7 +294,7 @@ def upload_interactive(request, source_type=None, source_id=None, document_pk=No
             })
 #*****************************************************************************************************************************
 
-         
+
         elif source_type == SOURCE_CHOICE_STAGING:
             staging_folder = get_object_or_404(StagingFolder, pk=source_id)
             context['source'] = staging_folder

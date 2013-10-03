@@ -21,8 +21,8 @@ PROJECT_TITLE = 'Mayan EDMS'
 PROJECT_NAME = 'mayan'
 
 DEBUG = True
-DEVELOPMENT = False
-TEMPLATE_DEBUG = False
+DEVELOPMENT = True
+TEMPLATE_DEBUG = True
 
 ADMINS = ()
 MANAGERS = ADMINS
@@ -30,7 +30,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME':'/usr/share/dev12/scan/mayan/mayan.sql', #os.path.join(PROJECT_ROOT, '%s.sqlite' % PROJECT_NAME),     # Or path to database file if using sqlite3.
+        'NAME': os.path.join(PROJECT_ROOT, '%s.sqlite' % PROJECT_NAME),     # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -308,7 +308,7 @@ if DEVELOPMENT:
         import debug_toolbar
         #INSTALLED_APPS +=('debug_toolbar',)
     except ImportError:
-        pass        
+        pass
 
     TEMPLATE_CONTEXT_PROCESSORS += ('django.core.context_processors.debug',)
 

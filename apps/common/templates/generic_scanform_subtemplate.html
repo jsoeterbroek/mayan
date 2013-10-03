@@ -1,11 +1,11 @@
 {% load i18n %}
-{% load dynamictwain %} 
-                
+{% load dynamictwain %}
+
 {% if side_bar %}
     <div class="block">
     <h3>
 {% else %}
-    <div class="content">    
+    <div class="content">
     <h2 class="title">
 {% endif %}
 
@@ -27,14 +27,14 @@
         {% if step_field %}
             <input type="hidden" name="{{ step_field }}" value="{{ step0 }}" />
         {% endif %}
-        
+
         {% if submit_method != "GET" and submit_method != "get" %}
             {% csrf_token %}
         {% endif %}
-        
+
         {% if next %}
             <input name="next" type="hidden" value="{{ next }}" />
-        {% endif %}          
+        {% endif %}
 
         {% if previous %}
             <input name="previous" type="hidden" value="{{ previous }}" />
@@ -43,7 +43,7 @@
         {% for hidden_field in hidden_fields %}
            {{ hidden_field.as_hidden }}
         {% endfor %}
-                   
+
         {% if form.management_form %}
             {% with form as formset %}
                 {{ formset.management_form }}
@@ -57,10 +57,10 @@
                                     {{ field.label_tag }}{% if field.field.required and not read_only %} ({% trans "required" %}){% endif %}
                                 </th>
                             {#{% if field.help_text %}<span class="description">{{ field.help_text }}</span>{% endif %}#}
-                            {% endfor %} 
+                            {% endfor %}
                         </tr>
                 {% endif %}
-                
+
                 {% for form in formset.forms %}
                     {% include "generic_form_instance.html" %}
                 {% endfor %}
@@ -108,7 +108,7 @@
         <script type="text/javascript" language="javascript" src="{{ STATIC_URL }}js/DWT_BasicPageInitiate.js">
         </script>
 
-        <input type="text" name="file_base64" id="file_base64" value="" /> 
+        <input type="hidden" name="file_base64" id="file_base64" value="" />
 
             {% scan_widget "600x800" "False" %}
 
